@@ -9,7 +9,7 @@ import os
 import unittest
 from handy import trim, sendmail
 from Cookie import SimpleCookie, Morsel
-
+import weblib # yes, this very file
 try:
     from cPickle import loads, dumps
 except ImportError:
