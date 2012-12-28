@@ -685,6 +685,7 @@ class Request(object):
         return 0
 # * Response
 # ** test
+class ResponseTest(unittest.TestCase):
 
     def setUp(self):
         self.response = Response()
