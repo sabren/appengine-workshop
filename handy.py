@@ -11,15 +11,8 @@ import random
 import string
 import tempfile
 import urllib
-import sys
-import warnings
-
-if sys.version_info[0]== 2:
-    from htmlentitydefs import name2codepoint, entitydefs
-else:
-    from html.entities import name2codepoint, entitydefs
-    from functools import reduce
-
+import datetime
+from htmlentitydefs import name2codepoint, entitydefs
 
 try:
     from genshi.template.text import NewTextTemplate
@@ -27,9 +20,14 @@ try:
         t = NewTextTemplate(trim(indented_string))
         return lambda **kw: t.generate(**kw).render()
 except ImportError: pass
+except IOError: pass # app engine
+
+
+
 
 try: from Ft.Xml.Domlette import NonvalidatingReader
 except ImportError: pass
+except IOError: pass # appengine
 
 ZETTA = 10**21
 EXA   = 10**18
@@ -245,9 +243,10 @@ def urlDecode(what):
 
 def htmlEncode(s):
     _entitymap = dict((val, key) for (key,val) in entitydefs.items())
-    has_entity = lambda ch: (ch in _entitymap or str(ch) in _entitymap)
-    as_entity  = lambda ch: ("&" + _entitymap[ch] + ";") if has_entity(ch) else ch
-    return ''.join(as_entity(ch) for ch in s)
+    return ''.join("&" + _entitymap[ch] + ";"
+    if ch in _entitymap or str(ch) in _entitymap
+    else ch
+    for ch in s)
 
 
 # http://stackoverflow.com/questions/275174/how-do-i-perform-html-decoding-encoding-using-python-django
@@ -263,10 +262,11 @@ def htmlDecode(s):
 
 def take(howMany, series):
     count = 0
-    each = iter(series)
-    while count < howMany:
-        yield next(series)
+    for thing in series:
+        yield thing
         count += 1
+        print count
+        if count >= howMany: break
 
 
 def xml(s):
@@ -309,11 +309,10 @@ class Proxy(object):
     def __setitem__(self, slot, value):
         self.obj[slot] = value
 
+
 def typecheck(obj, typ):
-    warnings.warn("use check module instead", DeprecationWarning)
     if isinstance(obj, typ):
         return obj
     else:
         raise TypeError("expected type: %s, got: %r" % (typ, obj))
-
 
